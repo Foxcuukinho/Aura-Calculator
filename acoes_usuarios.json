@@ -1,0 +1,48 @@
+[
+    {
+        "id": 1,
+        "username": "e",
+        "acao": "Li Harry potter Todo em 1 milesimo",
+        "aura_gemini": 1,
+        "explicacao": "Ler um livro, mesmo que rapidamente, Ã© geralmente positivo por promover aprendizado e entretenimento.",
+        "timestamp": "2025-10-19T14:11:14.857886",
+        "aura_corrigida": 0,
+        "feedback_admin": "Essa Ação é Impossivel, Deve Merecer -5 de Aura."
+    },
+    {
+        "id": 2,
+        "username": "e",
+        "acao": "li harry potter todo em um milesimo",
+        "aura_gemini": 0,
+        "explicacao": "Ações impossíveis devem ter aura neutra.",
+        "timestamp": "2025-10-19T14:12:09.377297",
+        "aura_corrigida": 0,
+        "feedback_admin": ""
+    },
+    {
+        "id": 3,
+        "username": "e",
+        "acao": "Fiz Esse site Todo",
+        "aura_gemini": 5,
+        "explicacao": "Criar um site completo demonstra habilidade, esforço e dedicação.",
+        "timestamp": "2025-10-19T14:15:50.604639",
+        "aura_corrigida": 67,
+        "feedback_admin": "Esta Ação Merece Mais Aura!"
+    },
+    {
+        "id": 4,
+        "username": "e",
+        "acao": "programei esse site todo",
+        "aura_gemini": 67,
+        "explicacao": "Programar um site inteiro demonstra habilidade, esforço e criatividade, merecendo uma aura alta.",
+        "timestamp": "2025-10-19T14:16:32.529037"
+    },
+    {
+        "id": 5,
+        "username": "e",
+        "acao": "Sou Admim Desse Servidor",
+        "aura_gemini": 2,
+        "explicacao": "Ser administrador de um servidor pode ter responsabilidades e implica em algum nível de contribuição, mas não é inerentemente bom ou ruim sem mais contexto.",
+        "timestamp": "2025-10-19T14:18:36.430318"
+    }
+]

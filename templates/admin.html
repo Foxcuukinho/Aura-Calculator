@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Admin - Sistema de Aura</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .navbar {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .navbar-brand {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .navbar-menu {
+            display: flex;
+            gap: 20px;
+        }
+
+        .navbar-menu a {
+            color: #666;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s;
+            padding: 8px 15px;
+            border-radius: 8px;
+        }
+
+        .navbar-menu a:hover {
+            background: #f0f0f0;
+            color: #667eea;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .stat-icon {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        .stat-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .main-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
+
+        .acoes-list {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .acao-item {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 5px solid #667eea;
+            transition: all 0.3s;
+        }
+
+        .acao-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .acao-item.corrigida {
+            border-left-color: #38ef7d;
+            background: linear-gradient(90deg, #e8f5e9 0%, #f8f9fa 100%);
+        }
+
+        .acao-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .acao-usuario {
+            font-weight: bold;
+            color: #667eea;
+            font-size: 1.1em;
+        }
+
+        .acao-aura {
+            font-size: 1.5em;
+            font-weight: bold;
+            padding: 5px 15px;
+            border-radius: 10px;
+            background: white;
+        }
+
+        .acao-aura.positive {
+            color: #11998e;
+        }
+
+        .acao-aura.negative {
+            color: #eb3349;
+        }
+
+        .acao-texto {
+            font-size: 1.1em;
+            color: #333;
+            margin: 10px 0;
+            font-style: italic;
+        }
+
+        .acao-explicacao {
+            color: #666;
+            margin: 10px 0;
+        }
+
+        .acao-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .btn-small {
+            padding: 8px 15px;
+            font-size: 0.9em;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+
+        .btn-edit {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-delete {
+            background: #eb3349;
+            color: white;
+        }
+
+        .btn-role {
+            background: #ffc107;
+            color: #333;
+        }
+
+        .btn-small:hover {
+            transform: translateY(-2px);
+        }
+
+        .edit-form {
+            display: none;
+            margin-top: 15px;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            border: 2px solid #667eea;
+        }
+
+        .edit-form.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+        }
+
+        .form-group textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .btn-salvar {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-salvar:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(17, 153, 142, 0.4);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: bold;
+            background: #38ef7d;
+            color: white;
+            margin-left: 10px;
+        }
+
+        .timestamp {
+            color: #999;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+
+        .usuarios-list {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .usuario-item {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 5px solid #667eea;
+            transition: all 0.3s;
+        }
+
+        .usuario-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .usuario-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .usuario-nome {
+            font-weight: bold;
+            color: #667eea;
+            font-size: 1.1em;
+        }
+
+        .usuario-role {
+            font-size: 1.1em;
+            font-weight: bold;
+            padding: 5px 15px;
+            border-radius: 10px;
+            background: white;
+            color: #666;
+        }
+
+        .usuario-detalhes {
+            color: #666;
+            margin: 10px 0;
+        }
+
+        .usuario-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .status-voce {
+            font-weight: bold;
+            color: #4b6cb7;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div class="navbar-brand">✨ AURA - 👑 ADMIN</div>
+        <div class="navbar-menu">
+            <a href="/dashboard">Dashboard</a>
+            <a href="/ranking">🏆 Ranking</a>
+            <a href="/conquistas">🎖️ Conquistas</a>
+            <a href="/admin">👑 Admin</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1>👑 Painel Administrativo</h1>
+            <p style="font-size: 1.2em;">Olá, {{ username }} - Gerencie ações e usuários</p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">👥</div>
+                <div class="stat-value">{{ total_usuarios }}</div>
+                <div class="stat-label">Usuários</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">📊</div>
+                <div class="stat-value">{{ total_acoes }}</div>
+                <div class="stat-label">Ações Totais</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">🎯</div>
+                <div class="stat-value">{{ acuracia }}%</div>
+                <div class="stat-label">Acurácia Gemini</div>
+            </div>
+        </div>
+
+        <div class="main-card">
+            <h2 style="margin-bottom: 20px;">📋 Últimas Ações</h2>
+            
+            <div class="acoes-list">
+                {% for acao in acoes %}
+                <div class="acao-item {% if acao.aura_corrigida %}corrigida{% endif %}">
+                    <div class="acao-header">
+                        <span class="acao-usuario">@{{ acao.username }}</span>
+                        <span class="acao-aura {% if (acao.aura_corrigida or acao.aura_gemini) > 0 %}positive{% elif (acao.aura_corrigida or acao.aura_gemini) < 0 %}negative{% endif %}">
+                            {{ acao.aura_corrigida or acao.aura_gemini }}
+                            {% if acao.aura_corrigida %}<span class="badge">✓ CORRIGIDO</span>{% endif %}
+                        </span>
+                    </div>
+
+                    <div class="acao-texto">"{{ acao.acao }}"</div>
+                    
+                    <div class="acao-explicacao">
+                        <strong>Gemini avaliou:</strong> {{ acao.aura_gemini }} aura
+                    </div>
+
+                    {% if acao.feedback_admin %}
+                    <div style="color: #38ef7d; margin-top: 10px;">
+                        <strong>💬 Seu feedback:</strong> {{ acao.feedback_admin }}
+                    </div>
+                    {% endif %}
+
+                    <div class="timestamp">
+                        {{ acao.timestamp.split('T')[0] }} às {{ acao.timestamp.split('T')[1].split('.')[0] }}
+                    </div>
+
+                    <div class="acao-actions">
+                        <button class="btn-small btn-edit" onclick="toggleEdit({{ acao.id }})">
+                            ✏️ Corrigir Avaliação
+                        </button>
+                        <button class="btn-small btn-delete" onclick="deletarAcao({{ acao.id }})">
+                            🗑️ Deletar
+                        </button>
+                    </div>
+
+                    <div class="edit-form" id="edit-{{ acao.id }}">
+                        <div class="form-group">
+                            <label for="aura-{{ acao.id }}">Nova Aura</label>
+                            <input type="number" id="aura-{{ acao.id }}" value="{{ acao.aura_corrigida or acao.aura_gemini }}">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="feedback-{{ acao.id }}">Feedback para IA (explique a correção)</label>
+                            <textarea id="feedback-{{ acao.id }}" placeholder="Ex: Esta ação merece mais aura porque ajudar idosos é muito valioso...">{{ acao.feedback_admin or '' }}</textarea>
+                        </div>
+
+                        <button class="btn-salvar" onclick="salvarCorrecao({{ acao.id }})">
+                            💾 Salvar e Treinar IA
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="main-card">
+            <h2 style="margin-bottom: 20px;">👥 Gerenciar Usuários</h2>
+            
+            <div class="usuarios-list">
+                {% for user in usuarios %}
+                <div class="usuario-item">
+                    <div class="usuario-header">
+                        <span class="usuario-nome">@{{ user.username }}</span>
+                        <span class="usuario-role">{{ user.role }}</span>
+                    </div>
+
+                    <div class="usuario-detalhes">
+                        <strong>Email:</strong> {{ user.email }}<br>
+                        <strong>Aura Total:</strong> {{ user.aura_total }}<br>
+                        <strong>Liga:</strong> {{ user.liga }}
+                    </div>
+
+                    <div class="usuario-actions">
+                        {% if user.username != username %}
+                        <button class="btn-small btn-role" onclick="alterarRole('{{ user.username }}')">
+                            🔄 Alterar Role
+                        </button>
+                        <button class="btn-small btn-delete" onclick="deletarUsuario('{{ user.username }}')">
+                            🗑️ Deletar
+                        </button>
+                        {% else %}
+                        <span class="status-voce">Você</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleEdit(id) {
+            const form = document.getElementById(`edit-${id}`);
+            form.classList.toggle('active');
+        }
+
+        async function salvarCorrecao(id) {
+            const aura = document.getElementById(`aura-${id}`).value;
+            const feedback = document.getElementById(`feedback-${id}`).value;
+
+            if (!feedback.trim()) {
+                alert('Por favor, adicione um feedback para treinar a IA!');
+                return;
+            }
+
+            try {
+                const response = await fetch('/admin/corrigir', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        id: parseInt(id),
+                        aura_corrigida: parseInt(aura),
+                        feedback_admin: feedback
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.sucesso) {
+                    alert('✅ Correção salva! A IA vai aprender com isso.');
+                    location.reload();
+                } else {
+                    alert('❌ Erro ao salvar');
+                }
+            } catch (error) {
+                alert('❌ Erro: ' + error);
+            }
+        }
+
+        async function deletarAcao(id) {
+            if (!confirm('Tem certeza que quer deletar esta ação?')) return;
+
+            try {
+                const response = await fetch(`/admin/deletar/${id}`, {
+                    method: 'DELETE'
+                });
+
+                const data = await response.json();
+
+                if (data.sucesso) {
+                    alert('✅ Ação deletada!');
+                    location.reload();
+                } else {
+                    alert('❌ Erro ao deletar');
+                }
+            } catch (error) {
+                alert('❌ Erro: ' + error);
+            }
+        }
+
+        async function alterarRole(username) {
+            const nova = prompt("Nova role (user/admin):");
+            if (!nova) return;
+
+            try {
+                const response = await fetch("/admin/usuarios/alterar_role", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ username: username, role: nova })
+                });
+
+                const data = await response.json();
+
+                if (data.sucesso) {
+                    alert('✅ Role alterada!');
+                    location.reload();
+                } else {
+                    alert('❌ Erro ao alterar role');
+                }
+            } catch (error) {
+                alert('❌ Erro: ' + error);
+            }
+        }
+
+        async function deletarUsuario(username) {
+            if (!confirm("Deseja realmente deletar este usuário?")) return;
+
+            try {
+                const response = await fetch("/admin/usuarios/deletar", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ username: username })
+                });
+
+                const data = await response.json();
+
+                if (data.sucesso) {
+                    alert('✅ Usuário deletado!');
+                    location.reload();
+                } else {
+                    alert('❌ Erro ao deletar');
+                }
+            } catch (error) {
+                alert('❌ Erro: ' + error);
+            }
+        }
+    </script>
+</body>
+</html>

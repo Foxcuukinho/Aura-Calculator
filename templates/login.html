@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Sistema de Aura</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 450px;
+            width: 100%;
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 40px;
+            animation: fadeIn 1s;
+        }
+
+        .logo h1 {
+            font-size: 3.5em;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            margin-bottom: 10px;
+        }
+
+        .logo p {
+            color: rgba(255,255,255,0.9);
+            font-size: 1.2em;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            animation: slideUp 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: bold;
+            color: #999;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+        }
+
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab:hover {
+            color: #667eea;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            font-size: 1em;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.1em;
+            font-weight: bold;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+            animation: shake 0.5s;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .success {
+            background: #efe;
+            color: #3c3;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .form-section {
+            display: none;
+        }
+
+        .form-section.active {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <h1>✨ AURA</h1>
+            <p>Sistema Inteligente de Avaliação</p>
+        </div>
+
+        <div class="card">
+            <div class="tabs">
+                <div class="tab active" onclick="mudarTab('login')">Entrar</div>
+                <div class="tab" onclick="mudarTab('registro')">Registrar</div>
+            </div>
+
+            <div id="erro" class="error"></div>
+            <div id="sucesso" class="success"></div>
+
+            <!-- LOGIN -->
+            <div id="login-form" class="form-section active">
+                <form onsubmit="fazerLogin(event)">
+                    <div class="form-group">
+                        <label for="login-username">Usuário</label>
+                        <input type="text" id="login-username" required autocomplete="username">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="login-password">Senha</label>
+                        <input type="password" id="login-password" required autocomplete="current-password">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" id="btn-login">
+                        Entrar
+                    </button>
+                </form>
+            </div>
+
+            <!-- REGISTRO -->
+            <div id="registro-form" class="form-section">
+                <form onsubmit="fazerRegistro(event)">
+                    <div class="form-group">
+                        <label for="reg-username">Usuário</label>
+                        <input type="text" id="reg-username" required autocomplete="username">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="reg-email">Email</label>
+                        <input type="email" id="reg-email" required autocomplete="email">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="reg-password">Senha</label>
+                        <input type="password" id="reg-password" required minlength="6" autocomplete="new-password">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="reg-password2">Confirmar Senha</label>
+                        <input type="password" id="reg-password2" required minlength="6" autocomplete="new-password">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" id="btn-registro">
+                        Criar Conta
+                    </button>
+                </form>
+            </div>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Processando...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function mudarTab(tab) {
+            // Atualizar tabs
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Atualizar forms
+            document.querySelectorAll('.form-section').forEach(f => f.classList.remove('active'));
+            document.getElementById(tab + '-form').classList.add('active');
+
+            // Limpar mensagens
+            document.getElementById('erro').style.display = 'none';
+            document.getElementById('sucesso').style.display = 'none';
+        }
+
+        function mostrarErro(msg) {
+            const erro = document.getElementById('erro');
+            erro.textContent = msg;
+            erro.style.display = 'block';
+            setTimeout(() => erro.style.display = 'none', 5000);
+        }
+
+        function mostrarSucesso(msg) {
+            const sucesso = document.getElementById('sucesso');
+            sucesso.textContent = msg;
+            sucesso.style.display = 'block';
+        }
+
+        async function fazerLogin(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('login-username').value;
+            const password = document.getElementById('login-password').value;
+            const btn = document.getElementById('btn-login');
+            
+            btn.disabled = true;
+            btn.textContent = 'Entrando...';
+
+            try {
+                const response = await fetch('/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (data.sucesso) {
+                    mostrarSucesso('✅ Login realizado! Redirecionando...');
+                    setTimeout(() => window.location.href = '/dashboard', 1000);
+                } else {
+                    mostrarErro(data.erro || 'Erro ao fazer login');
+                    btn.disabled = false;
+                    btn.textContent = 'Entrar';
+                }
+            } catch (error) {
+                mostrarErro('Erro de conexão. Tente novamente.');
+                btn.disabled = false;
+                btn.textContent = 'Entrar';
+            }
+        }
+
+        async function fazerRegistro(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('reg-username').value;
+            const email = document.getElementById('reg-email').value;
+            const password = document.getElementById('reg-password').value;
+            const password2 = document.getElementById('reg-password2').value;
+            const btn = document.getElementById('btn-registro');
+
+            if (password !== password2) {
+                mostrarErro('As senhas não coincidem!');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'Criando...';
+
+            try {
+                const response = await fetch('/registrar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, email, password })
+                });
+
+                const data = await response.json();
+
+                if (data.sucesso) {
+                    mostrarSucesso('✅ Conta criada! Redirecionando...');
+                    if (data.role === 'admin') {
+                        mostrarSucesso('👑 Você é o primeiro usuário! Agora é ADMIN!');
+                    }
+                    setTimeout(() => window.location.href = '/dashboard', 1500);
+                } else {
+                    mostrarErro(data.erro || 'Erro ao criar conta');
+                    btn.disabled = false;
+                    btn.textContent = 'Criar Conta';
+                }
+            } catch (error) {
+                mostrarErro('Erro de conexão. Tente novamente.');
+                btn.disabled = false;
+                btn.textContent = 'Criar Conta';
+            }
+        }
+    </script>
+</body>
+</html>

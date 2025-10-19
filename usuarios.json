@@ -1,0 +1,11 @@
+[
+    {
+        "username": "Fox_Cookie",
+        "email": "sigma@gmail.com",
+        "password": "scrypt:32768:8:1$5Rm6pn75IXPB7B43$de10a700c7be79a025df3277069c5cc82d3658cb3a0a85caf1c626bc8931199c7cb5dae9087d978d361b7f6a3310cdea88e599b3850dfcd73818652190b8bd2f",
+        "role": "admin",
+        "aura_total": 0,
+        "liga": "🥉 Bronze",
+        "data_criacao": "2025-10-19T14:24:58.079935"
+    }
+]
