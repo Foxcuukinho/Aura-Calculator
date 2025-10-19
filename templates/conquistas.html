@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conquistas - Sistema de Aura</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .navbar {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .navbar-brand {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .navbar-menu {
+            display: flex;
+            gap: 20px;
+        }
+
+        .navbar-menu a {
+            color: #666;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s;
+            padding: 8px 15px;
+            border-radius: 8px;
+        }
+
+        .navbar-menu a:hover {
+            background: #f0f0f0;
+            color: #667eea;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .conquistas-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .conquista-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .conquista-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .conquista-card.bloqueada {
+            opacity: 0.5;
+            filter: grayscale(100%);
+        }
+
+        .conquista-card.bloqueada::before {
+            background: #ccc;
+        }
+
+        .conquista-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 50px rgba(0,0,0,0.3);
+        }
+
+        .conquista-icone {
+            font-size: 4em;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .conquista-nome {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #333;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .conquista-descricao {
+            color: #666;
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 1em;
+        }
+
+        .conquista-bonus {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+            padding: 10px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .conquista-status {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+
+        .conquista-card.bloqueada .conquista-status {
+            background: #ccc;
+        }
+
+        .stats {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .stats h2 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .stats-value {
+            font-size: 3em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .voltar-btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background: white;
+            color: #667eea;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: bold;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .voltar-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+
+        .filtro-buttons {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .filtro-btn {
+            padding: 10px 25px;
+            margin: 0 10px;
+            background: white;
+            color: #667eea;
+            border: 2px solid white;
+            border-radius: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .filtro-btn:hover {
+            background: rgba(255,255,255,0.9);
+            transform: translateY(-2px);
+        }
+
+        .filtro-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div class="navbar-brand">✨ AURA</div>
+        <div class="navbar-menu">
+            <a href="/dashboard">Dashboard</a>
+            <a href="/ranking">🏆 Ranking</a>
+            <a href="/conquistas">🎖️ Conquistas</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1>🎖️ Suas Conquistas</h1>
+            <p style="font-size: 1.2em;">Desbloqueie todas e torne-se lendário!</p>
+        </div>
+
+        <div class="stats">
+            <h2>Progresso Geral</h2>
+            <div class="stats-value">
+                {{ conquistas|selectattr('desbloqueada')|list|length }} / {{ conquistas|length }}
+            </div>
+            <p style="color: #666; margin-top: 10px; font-size: 1.1em;">
+                {{ ((conquistas|selectattr('desbloqueada')|list|length / conquistas|length) * 100)|round(1) }}% completo
+            </p>
+        </div>
+
+        <div class="filtro-buttons">
+            <button class="filtro-btn active" onclick="filtrar('todas')">Todas</button>
+            <button class="filtro-btn" onclick="filtrar('desbloqueadas')">Desbloqueadas</button>
+            <button class="filtro-btn" onclick="filtrar('bloqueadas')">Bloqueadas</button>
+        </div>
+
+        <div class="conquistas-grid" id="conquistasGrid">
+            {% for conquista in conquistas %}
+            <div class="conquista-card {% if not conquista.desbloqueada %}bloqueada{% endif %}" data-status="{% if conquista.desbloqueada %}desbloqueada{% else %}bloqueada{% endif %}">
+                <div class="conquista-status">
+                    {% if conquista.desbloqueada %}✓ DESBLOQUEADA{% else %}🔒 BLOQUEADA{% endif %}
+                </div>
+                <div class="conquista-icone">
+                    {{ conquista.nome.split()[0] }}
+                </div>
+                <div class="conquista-nome">
+                    {{ conquista.nome.split()[1:] | join(' ') }}
+                </div>
+                <div class="conquista-descricao">
+                    {{ conquista.descricao }}
+                </div>
+                <div class="conquista-bonus">
+                    {% if conquista.aura_bonus > 0 %}
+                    +{{ conquista.aura_bonus }} aura de bônus
+                    {% else %}
+                    Sem bônus
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div style="text-align: center; margin-top: 30px;">
+            <a href="/dashboard" class="voltar-btn">← Voltar ao Dashboard</a>
+        </div>
+    </div>
+
+    <script>
+        function filtrar(tipo) {
+            const cards = document.querySelectorAll('.conquista-card');
+            const buttons = document.querySelectorAll('.filtro-btn');
+            
+            buttons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            cards.forEach(card => {
+                const status = card.getAttribute('data-status');
+                
+                if (tipo === 'todas') {
+                    card.style.display = 'block';
+                } else if (tipo === 'desbloqueadas' && status === 'desbloqueada') {
+                    card.style.display = 'block';
+                } else if (tipo === 'bloqueadas' && status === 'bloqueada') {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+    </script>
+</body>
+</html>

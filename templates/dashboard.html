@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Sistema de Aura</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .navbar {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .navbar-brand {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .navbar-menu {
+            display: flex;
+            gap: 20px;
+        }
+
+        .navbar-menu a {
+            color: #666;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s;
+            padding: 8px 15px;
+            border-radius: 8px;
+        }
+
+        .navbar-menu a:hover {
+            background: #f0f0f0;
+            color: #667eea;
+        }
+
+        .navbar-user {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .btn-logout {
+            padding: 8px 20px;
+            background: #eb3349;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .btn-logout:hover {
+            background: #c12737;
+            transform: translateY(-2px);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .stat-icon {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        .stat-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .main-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.1em;
+            border: 3px solid #e0e0e0;
+            border-radius: 15px;
+            transition: all 0.3s;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 18px;
+            font-size: 1.3em;
+            font-weight: bold;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result {
+            display: none;
+            text-align: center;
+            padding: 30px;
+            border-radius: 15px;
+            margin-top: 20px;
+            animation: slideIn 0.5s;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result.positive {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+        }
+
+        .result.negative {
+            background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+            color: white;
+        }
+
+        .result.neutral {
+            background: linear-gradient(135deg, #bdc3c7 0%, #95a5a6 100%);
+            color: white;
+        }
+
+        .result h2 {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        .result p {
+            font-size: 1.2em;
+        }
+
+        .conquista-popup {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            display: none;
+            animation: slideInRight 0.5s, pulse 2s infinite;
+            z-index: 1000;
+            max-width: 350px;
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(100px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .conquista-popup h3 {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+        }
+
+        .conquista-popup p {
+            font-size: 1.1em;
+        }
+
+        .historico-list {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .historico-item {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 5px solid #667eea;
+            transition: all 0.3s;
+        }
+
+        .historico-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .historico-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .historico-acao {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .historico-aura {
+            font-size: 1.5em;
+            font-weight: bold;
+            padding: 5px 15px;
+            border-radius: 10px;
+            background: white;
+        }
+
+        .historico-aura.positive {
+            color: #11998e;
+        }
+
+        .historico-aura.negative {
+            color: #eb3349;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .admin-badge {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div class="navbar-brand">✨ AURA</div>
+        <div class="navbar-menu">
+            <a href="/dashboard">Dashboard</a>
+            <a href="/ranking">🏆 Ranking</a>
+            <a href="/conquistas">🎖️ Conquistas</a>
+            {% if session.role == 'admin' %}
+            <a href="/admin">👑 Admin</a>
+            {% endif %}
+        </div>
+        <div class="navbar-user">
+            <span><strong>{{ user.username }}</strong></span>
+            {% if user.role == 'admin' %}
+            <span class="admin-badge">👑 ADMIN</span>
+            {% endif %}
+            <button class="btn-logout" onclick="window.location.href='/logout'">Sair</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">✨</div>
+                <div class="stat-value" id="auraTotal">{{ user.aura_total }}</div>
+                <div class="stat-label">Aura Total</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">{{ user.liga.split()[0] }}</div>
+                <div class="stat-value">{{ user.liga.split()[1] }}</div>
+                <div class="stat-label">Liga Atual</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">📊</div>
+                <div class="stat-value">{{ total_acoes }}</div>
+                <div class="stat-label">Ações Realizadas</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">🎖️</div>
+                <div class="stat-value">{{ conquistas|length }}</div>
+                <div class="stat-label">Conquistas</div>
+            </div>
+        </div>
+
+        <div class="main-card">
+            <h2 style="margin-bottom: 20px;">O que você fez hoje?</h2>
+            
+            <div class="input-group">
+                <label for="acaoInput">Digite sua ação</label>
+                <input 
+                    type="text" 
+                    id="acaoInput" 
+                    placeholder="Ex: Ajudei uma pessoa idosa..."
+                    autocomplete="off"
+                >
+            </div>
+
+            <button class="btn btn-primary" onclick="avaliarAcao()" id="btnAvaliar">
+                Avaliar Aura
+            </button>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p style="margin-top: 10px;">Gemini está analisando...</p>
+            </div>
+
+            <div class="result" id="result"></div>
+        </div>
+
+        <div class="main-card">
+            <h2 style="margin-bottom: 20px;">📜 Seu Histórico</h2>
+            <div class="historico-list" id="historicoList">
+                <p style="text-align: center; color: #999;">Carregando...</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="conquista-popup" id="conquistaPopup"></div>
+
+    <script>
+        carregarHistorico();
+
+        document.getElementById('acaoInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                avaliarAcao();
+            }
+        });
+
+        async function avaliarAcao() {
+            const acao = document.getElementById('acaoInput').value.trim();
+            
+            if (!acao) {
+                alert('Digite uma ação!');
+                return;
+            }
+
+            const btn = document.getElementById('btnAvaliar');
+            btn.disabled = true;
+            document.getElementById('loading').classList.add('active');
+            document.getElementById('result').style.display = 'none';
+
+            try {
+                const response = await fetch('/avaliar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ acao })
+                });
+
+                const data = await response.json();
+                
+                mostrarResultado(data.aura, data.explicacao);
+                document.getElementById('acaoInput').value = '';
+                
+                // Atualizar stats
+                document.getElementById('auraTotal').textContent = data.aura_total;
+                
+                // Mostrar conquistas
+                if (data.conquistas && data.conquistas.length > 0) {
+                    mostrarConquistas(data.conquistas);
+                }
+                
+                setTimeout(carregarHistorico, 1000);
+                
+            } catch (error) {
+                alert('Erro ao avaliar: ' + error);
+            } finally {
+                document.getElementById('loading').classList.remove('active');
+                btn.disabled = false;
+            }
+        }
+
+        function mostrarResultado(aura, explicacao) {
+            const result = document.getElementById('result');
+            
+            let classe = 'neutral';
+            let emoji = '😐';
+            
+            if (aura > 0) {
+                classe = 'positive';
+                emoji = aura > 50 ? '🌟' : '✨';
+            } else if (aura < 0) {
+                classe = 'negative';
+                emoji = aura < -50 ? '💀' : '😞';
+            }
+
+            result.className = `result ${classe}`;
+            result.innerHTML = `
+                <h2>${emoji} ${aura > 0 ? '+' : ''}${aura} Aura</h2>
+                <p>${explicacao}</p>
+            `;
+            result.style.display = 'block';
+        }
+
+        function mostrarConquistas(conquistas) {
+            const popup = document.getElementById('conquistaPopup');
+            
+            conquistas.forEach((conquista, index) => {
+                setTimeout(() => {
+                    popup.innerHTML = `
+                        <h3>🎉 Nova Conquista!</h3>
+                        <p><strong>${conquista.nome}</strong></p>
+                        <p>${conquista.descricao}</p>
+                        <p>+${conquista.aura_bonus} aura de bônus!</p>
+                    `;
+                    popup.style.display = 'block';
+                    
+                    setTimeout(() => {
+                        popup.style.display = 'none';
+                    }, 5000);
+                }, index * 6000);
+            });
+        }
+
+        async function carregarHistorico() {
+            try {
+                const response = await fetch('/historico');
+                const data = await response.json();
+                
+                const lista = document.getElementById('historicoList');
+                
+                if (data.historico.length === 0) {
+                    lista.innerHTML = '<p style="text-align: center; color: #999;">Nenhuma ação registrada ainda.</p>';
+                    return;
+                }
+
+                lista.innerHTML = data.historico.map(item => {
+                    const auraFinal = item.aura_corrigida || item.aura_gemini;
+                    const classe = auraFinal > 0 ? 'positive' : auraFinal < 0 ? 'negative' : '';
+                    const corrigido = item.aura_corrigida ? ' <span style="background: #38ef7d; color: white; padding: 3px 10px; border-radius: 10px; font-size: 0.8em;">✓ CORRIGIDO</span>' : '';
+                    
+                    return `
+                        <div class="historico-item">
+                            <div class="historico-header">
+                                <span class="historico-acao">${item.acao}</span>
+                                <span class="historico-aura ${classe}">${auraFinal > 0 ? '+' : ''}${auraFinal}</span>
+                            </div>
+                            <div style="color: #666;">
+                                <strong>Gemini:</strong> ${item.explicacao} ${corrigido}
+                            </div>
+                            ${item.feedback_admin ? `<div style="color: #38ef7d; margin-top: 5px;"><strong>💬 Admin:</strong> ${item.feedback_admin}</div>` : ''}
+                        </div>
+                    `;
+                }).join('');
+                
+            } catch (error) {
+                console.error('Erro ao carregar histórico:', error);
+            }
+        }
+    </script>
+</body>
+</html>
