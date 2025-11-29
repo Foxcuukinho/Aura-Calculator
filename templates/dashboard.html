@@ -424,6 +424,68 @@
             <div class="result" id="result"></div>
         </div>
 
+        <!-- SEÇÃO ROBLOX -->
+        <div class="main-card">
+            <h2 style="margin-bottom: 20px;">🎮 Vincular Roblox</h2>
+            
+            {% if user.roblox_username %}
+            <!-- CONTA JÁ VINCULADA -->
+            <div style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); padding: 30px; border-radius: 15px; color: white; margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <h3 style="margin: 0 0 10px 0;">✅ Conta Vinculada</h3>
+                        <p style="margin: 5px 0; font-size: 1.2em;"><strong>Username:</strong> {{ user.roblox_username }}</p>
+                        <p style="margin: 5px 0;"><strong>Total de Badges:</strong> {{ user.roblox_badges_total or 0 }}</p>
+                        <p style="margin: 5px 0;"><strong>Aura das Badges:</strong> +{{ user.roblox_badges|map(attribute='aura')|sum if user.roblox_badges else 0 }}</p>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 4em;">🎮</div>
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button class="btn btn-primary" onclick="window.location.href='/roblox-badges'" style="flex: 1; background: white; color: #11998e;">
+                        Ver Minhas Badges
+                    </button>
+                    <button class="btn btn-primary" onclick="atualizarBadgesRoblox()" style="flex: 1; background: rgba(255,255,255,0.2);">
+                        🔄 Atualizar Badges
+                    </button>
+                    <button class="btn btn-primary" onclick="desvincularRoblox()" style="flex: 1; background: rgba(255,0,0,0.3);">
+                        ❌ Desvincular
+                    </button>
+                </div>
+            </div>
+            
+            {% else %}
+            <!-- VINCULAR CONTA -->
+            <div style="text-align: center; padding: 20px;">
+                <div style="font-size: 4em; margin-bottom: 20px;">🎮</div>
+                <p style="color: #666; margin-bottom: 20px;">Conecte sua conta do Roblox e ganhe aura pelas suas badges!</p>
+                
+                <div class="input-group">
+                    <label for="robloxUsernameInput">Username do Roblox</label>
+                    <input 
+                        type="text" 
+                        id="robloxUsernameInput" 
+                        placeholder="Digite seu username exato do Roblox..."
+                        autocomplete="off"
+                    >
+                </div>
+
+                <button class="btn btn-primary" onclick="vincularRoblox()" id="btnVincularRoblox">
+                    🎮 Vincular Conta
+                </button>
+
+                <div class="loading" id="loadingRoblox">
+                    <div class="spinner"></div>
+                    <p style="margin-top: 10px;">Buscando badges no Roblox...</p>
+                </div>
+
+                <div class="result" id="resultRoblox"></div>
+            </div>
+            {% endif %}
+        </div>
+
         <div class="main-card">
             <h2 style="margin-bottom: 20px;">📜 Seu Histórico</h2>
             <div class="historico-list" id="historicoList">
@@ -468,10 +530,8 @@
                 mostrarResultado(data.aura, data.explicacao);
                 document.getElementById('acaoInput').value = '';
                 
-                // Atualizar stats
                 document.getElementById('auraTotal').textContent = data.aura_total;
                 
-                // Mostrar conquistas
                 if (data.conquistas && data.conquistas.length > 0) {
                     mostrarConquistas(data.conquistas);
                 }
@@ -561,6 +621,132 @@
                 
             } catch (error) {
                 console.error('Erro ao carregar histórico:', error);
+            }
+        }
+
+        // FUNÇÕES ROBLOX
+        async function vincularRoblox() {
+            const username = document.getElementById('robloxUsernameInput').value.trim();
+            
+            if (!username) {
+                alert('Digite seu username do Roblox!');
+                return;
+            }
+
+            const btn = document.getElementById('btnVincularRoblox');
+            btn.disabled = true;
+            document.getElementById('loadingRoblox').classList.add('active');
+            document.getElementById('resultRoblox').style.display = 'none';
+
+            try {
+                const response = await fetch('/vincular-roblox', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ roblox_username: username })
+                });
+
+                const data = await response.json();
+                
+                if (data.sucesso) {
+                    const result = document.getElementById('resultRoblox');
+                    result.className = 'result positive';
+                    result.innerHTML = `
+                        <h2>✅ Conta Vinculada!</h2>
+                        <p><strong>@${data.roblox_user.username}</strong></p>
+                        <p>🏆 ${data.total_badges} badges encontradas</p>
+                        <p>✨ +${data.aura_ganho} aura ganho!</p>
+                        <p style="margin-top: 15px;">Recarregando página...</p>
+                    `;
+                    result.style.display = 'block';
+                    
+                    document.getElementById('auraTotal').textContent = data.aura_total;
+                    
+                    if (data.conquistas && data.conquistas.length > 0) {
+                        mostrarConquistas(data.conquistas);
+                    }
+                    
+                    setTimeout(() => location.reload(), 3000);
+                    
+                } else {
+                    const result = document.getElementById('resultRoblox');
+                    result.className = 'result negative';
+                    result.innerHTML = `
+                        <h2>❌ Erro</h2>
+                        <p>${data.erro}</p>
+                    `;
+                    result.style.display = 'block';
+                    btn.disabled = false;
+                }
+                
+            } catch (error) {
+                alert('Erro ao vincular: ' + error);
+                btn.disabled = false;
+            } finally {
+                document.getElementById('loadingRoblox').classList.remove('active');
+            }
+        }
+
+        async function desvincularRoblox() {
+            if (!confirm('Tem certeza que deseja desvincular sua conta do Roblox? Você perderá toda a aura das badges!')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/desvincular-roblox', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                const data = await response.json();
+                
+                if (data.sucesso) {
+                    alert('✅ Conta desvinculada com sucesso!');
+                    location.reload();
+                } else {
+                    alert('❌ Erro: ' + data.erro);
+                }
+                
+            } catch (error) {
+                alert('❌ Erro ao desvincular: ' + error);
+            }
+        }
+
+        async function atualizarBadgesRoblox() {
+            const btn = event.target;
+            btn.disabled = true;
+            btn.textContent = '🔄 Atualizando...';
+
+            try {
+                const response = await fetch('/atualizar-badges-roblox', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                const data = await response.json();
+                
+                if (data.sucesso) {
+                    if (data.novas_badges > 0) {
+                        alert(`✅ ${data.novas_badges} novas badges encontradas!\n+${data.aura_ganho} aura ganho!`);
+                        
+                        document.getElementById('auraTotal').textContent = data.aura_total;
+                        
+                        if (data.conquistas && data.conquistas.length > 0) {
+                            mostrarConquistas(data.conquistas);
+                        }
+                        
+                        setTimeout(() => location.reload(), 2000);
+                    } else {
+                        alert('✅ Suas badges já estão atualizadas!');
+                    }
+                } else {
+                    alert('❌ Erro: ' + data.erro);
+                }
+                
+            } catch (error) {
+                alert('❌ Erro ao atualizar: ' + error);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '🔄 Atualizar Badges';
             }
         }
     </script>
