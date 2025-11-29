@@ -4,6 +4,360 @@ from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
 import google.generativeai as genai
+# ========================================
+# ADICIONAR NO TOPO DO app.py (depois dos imports)
+# ========================================
+
+import requests
+
+# ========================================
+# FUNÇÕES ROBLOX (adicionar antes das rotas)
+# ========================================
+
+def buscar_usuario_roblox(username):
+    """Busca ID do usuário pelo username"""
+    try:
+        url = "https://users.roblox.com/v1/usernames/users"
+        response = requests.post(url, json={
+            "usernames": [username],
+            "excludeBannedUsers": True
+        }, timeout=10)
+        
+        if response.status_code == 200:
+            data = response.json()
+            if data.get("data") and len(data["data"]) > 0:
+                user_data = data["data"][0]
+                return {
+                    "id": user_data.get("id"),
+                    "username": user_data.get("name"),
+                    "display_name": user_data.get("displayName")
+                }
+        return None
+    except Exception as e:
+        print(f"Erro ao buscar usuário Roblox: {e}")
+        return None
+
+def buscar_badges_roblox(user_id):
+    """Busca todas as badges do usuário"""
+    try:
+        badges = []
+        cursor = ""
+        
+        while True:
+            url = f"https://badges.roblox.com/v1/users/{user_id}/badges?limit=100&sortOrder=Asc"
+            if cursor:
+                url += f"&cursor={cursor}"
+            
+            response = requests.get(url, timeout=10)
+            
+            if response.status_code != 200:
+                break
+            
+            data = response.json()
+            
+            for badge in data.get("data", []):
+                badges.append({
+                    "id": badge.get("id"),
+                    "name": badge.get("name"),
+                    "description": badge.get("description"),
+                    "icon": badge.get("iconImageId"),
+                    "awarded_date": badge.get("created")
+                })
+            
+            cursor = data.get("nextPageCursor")
+            if not cursor:
+                break
+        
+        return badges
+    except Exception as e:
+        print(f"Erro ao buscar badges: {e}")
+        return []
+
+def avaliar_badges_com_gemini(badges, historico_badges):
+    """IA avalia quanto de aura cada badge vale"""
+    if not badges:
+        return [], 0
+    
+    # Limitar a 50 badges por vez
+    badges_limitadas = badges[:50]
+    
+    contexto = """Você é um avaliador de badges do Roblox. Analise cada badge e dê uma pontuação de aura:
+- Badges comuns/fáceis: 1-10 aura
+- Badges médias: 11-50 aura  
+- Badges difíceis/raras: 51-200 aura
+- Badges extremamente raras/impossíveis: 201-1000 aura
+
+"""
+    
+    if historico_badges:
+        contexto += "### BADGES JÁ AVALIADAS (para manter consistência):\n"
+        for h in historico_badges[-20:]:
+            contexto += f"- '{h['nome']}': {h['aura']} aura\n"
+        contexto += "\n"
+    
+    contexto += "### NOVAS BADGES PARA AVALIAR:\n"
+    for i, badge in enumerate(badges_limitadas):
+        contexto += f"{i+1}. Nome: '{badge['name']}'\n"
+        if badge.get('description'):
+            contexto += f"   Descrição: {badge['description'][:100]}\n"
+    
+    contexto += "\nResponda APENAS com JSON no formato:\n"
+    contexto += '{"badges": [{"index": 1, "aura": 50, "motivo": "..."}, ...]}\n'
+    contexto += "Seja criterioso e justo. Badges genéricas valem pouco, badges de eventos ou conquistas difíceis valem muito."
+    
+    try:
+        resposta = MODEL.generate_content(contexto)
+        json_str = re.search(r"\{.*\}", resposta.text, re.DOTALL)
+        
+        if not json_str:
+            return [], 0
+        
+        dados = json.loads(json_str.group(0))
+        badges_avaliadas = []
+        aura_total = 0
+        
+        for avaliacao in dados.get("badges", []):
+            idx = avaliacao.get("index", 0) - 1
+            if 0 <= idx < len(badges_limitadas):
+                badge = badges_limitadas[idx]
+                aura = int(avaliacao.get("aura", 0))
+                motivo = avaliacao.get("motivo", "Sem motivo")
+                
+                badges_avaliadas.append({
+                    "nome": badge["name"],
+                    "descricao": badge.get("description", ""),
+                    "aura": aura,
+                    "motivo": motivo,
+                    "badge_id": badge["id"]
+                })
+                aura_total += aura
+        
+        return badges_avaliadas, aura_total
+    
+    except Exception as e:
+        print(f"Erro na avaliação Gemini: {e}")
+        return [], 0
+
+
+# ========================================
+# NOVAS CONQUISTAS (adicionar no CONQUISTAS_DEFINICOES)
+# ========================================
+
+# Adicione estas 3 conquistas no seu dicionário CONQUISTAS_DEFINICOES:
+"""
+"roblox_conectado": {"nome": "🎮 Jogador Conectado", "descricao": "Vinculou conta do Roblox", "aura_bonus": 25},
+"colecionador": {"nome": "🏆 Colecionador", "descricao": "Tem 50+ badges no Roblox", "aura_bonus": 100},
+"mestre_badges": {"nome": "👑 Mestre das Badges", "descricao": "Tem 200+ badges no Roblox", "aura_bonus": 500}
+"""
+
+
+# ========================================
+# ATUALIZAR verificar_conquistas (adicionar no final da função)
+# ========================================
+
+# Adicione estas linhas no final da função verificar_conquistas, antes do "for c in novas:":
+"""
+    # Conquistas Roblox
+    if user.get('roblox_username') and "roblox_conectado" not in conquistas_user[username]:
+        novas.append("roblox_conectado")
+    
+    total_badges = len(user.get('roblox_badges', []))
+    if total_badges >= 50 and "colecionador" not in conquistas_user[username]:
+        novas.append("colecionador")
+    if total_badges >= 200 and "mestre_badges" not in conquistas_user[username]:
+        novas.append("mestre_badges")
+"""
+
+
+# ========================================
+# NOVAS ROTAS ROBLOX (adicionar no final do app.py, antes do if __name__)
+# ========================================
+
+@app.route('/vincular-roblox', methods=['POST'])
+@login_required
+def vincular_roblox():
+    """Vincula conta do Roblox ao usuário"""
+    data = request.json
+    roblox_username = data.get('roblox_username', '').strip()
+    
+    if not roblox_username:
+        return jsonify({'sucesso': False, 'erro': 'Digite um username do Roblox'}), 400
+    
+    # Buscar usuário no Roblox
+    roblox_user = buscar_usuario_roblox(roblox_username)
+    
+    if not roblox_user:
+        return jsonify({'sucesso': False, 'erro': 'Usuário não encontrado no Roblox'}), 404
+    
+    # Buscar badges
+    badges = buscar_badges_roblox(roblox_user['id'])
+    
+    # Avaliar badges com IA
+    historico_badges = []
+    usuarios = carregar_usuarios()
+    for u in usuarios:
+        if u.get('roblox_badges'):
+            historico_badges.extend(u['roblox_badges'])
+    
+    badges_avaliadas, aura_total_badges = avaliar_badges_com_gemini(badges, historico_badges)
+    
+    # Atualizar usuário
+    user = next((u for u in usuarios if u['username'] == session['username']), None)
+    if user:
+        user['roblox_username'] = roblox_user['username']
+        user['roblox_id'] = roblox_user['id']
+        user['roblox_display_name'] = roblox_user['display_name']
+        user['roblox_badges'] = badges_avaliadas
+        user['roblox_badges_total'] = len(badges)
+        user['aura_total'] += aura_total_badges
+        user['liga'] = calcular_liga(user['aura_total'])
+        user['roblox_vinculado_em'] = datetime.now().isoformat()
+        
+        salvar_usuarios(usuarios)
+        
+        # Verificar conquistas
+        novas_conquistas = verificar_conquistas(session['username'])
+        conquistas_desbloqueadas = [CONQUISTAS_DEFINICOES[c] for c in novas_conquistas]
+        
+        return jsonify({
+            'sucesso': True,
+            'roblox_user': roblox_user,
+            'total_badges': len(badges),
+            'badges_avaliadas': len(badges_avaliadas),
+            'aura_ganho': aura_total_badges,
+            'aura_total': user['aura_total'],
+            'liga': user['liga'],
+            'conquistas': conquistas_desbloqueadas
+        })
+    
+    return jsonify({'sucesso': False, 'erro': 'Usuário não encontrado'}), 404
+
+
+@app.route('/desvincular-roblox', methods=['POST'])
+@login_required
+def desvincular_roblox():
+    """Desvincula conta do Roblox"""
+    usuarios = carregar_usuarios()
+    user = next((u for u in usuarios if u['username'] == session['username']), None)
+    
+    if user and user.get('roblox_username'):
+        # Remover aura das badges
+        badges_aura = sum(b.get('aura', 0) for b in user.get('roblox_badges', []))
+        user['aura_total'] -= badges_aura
+        
+        # Remover dados Roblox
+        user.pop('roblox_username', None)
+        user.pop('roblox_id', None)
+        user.pop('roblox_display_name', None)
+        user.pop('roblox_badges', None)
+        user.pop('roblox_badges_total', None)
+        user.pop('roblox_vinculado_em', None)
+        
+        user['liga'] = calcular_liga(user['aura_total'])
+        
+        salvar_usuarios(usuarios)
+        
+        return jsonify({
+            'sucesso': True,
+            'aura_total': user['aura_total'],
+            'liga': user['liga']
+        })
+    
+    return jsonify({'sucesso': False, 'erro': 'Nenhuma conta vinculada'}), 400
+
+
+@app.route('/roblox-badges')
+@login_required
+def roblox_badges():
+    """Mostra as badges do Roblox do usuário"""
+    usuarios = carregar_usuarios()
+    user = next((u for u in usuarios if u['username'] == session['username']), None)
+    
+    if not user or not user.get('roblox_username'):
+        return render_template('roblox_badges.html', badges=[], roblox_user=None, username=session['username'])
+    
+    badges = user.get('roblox_badges', [])
+    roblox_info = {
+        'username': user.get('roblox_username'),
+        'display_name': user.get('roblox_display_name'),
+        'total_badges': user.get('roblox_badges_total', 0),
+        'aura_total_badges': sum(b.get('aura', 0) for b in badges)
+    }
+    
+    # Ordenar badges por aura (maior para menor)
+    badges_ordenadas = sorted(badges, key=lambda x: x.get('aura', 0), reverse=True)
+    
+    return render_template('roblox_badges.html', 
+                         badges=badges_ordenadas, 
+                         roblox_user=roblox_info,
+                         username=session['username'])
+
+
+@app.route('/atualizar-badges-roblox', methods=['POST'])
+@login_required
+def atualizar_badges_roblox():
+    """Atualiza as badges do Roblox (caso tenha ganho novas)"""
+    usuarios = carregar_usuarios()
+    user = next((u for u in usuarios if u['username'] == session['username']), None)
+    
+    if not user or not user.get('roblox_id'):
+        return jsonify({'sucesso': False, 'erro': 'Conta Roblox não vinculada'}), 400
+    
+    # Buscar badges atuais
+    badges_antigas = user.get('roblox_badges', [])
+    badges_ids_antigas = [b['badge_id'] for b in badges_antigas]
+    
+    # Buscar novas badges
+    badges_novas_raw = buscar_badges_roblox(user['roblox_id'])
+    badges_novas_ids = [b['id'] for b in badges_novas_raw]
+    
+    # Filtrar apenas badges que não tinha antes
+    badges_para_avaliar = [b for b in badges_novas_raw if b['id'] not in badges_ids_antigas]
+    
+    if not badges_para_avaliar:
+        return jsonify({
+            'sucesso': True,
+            'mensagem': 'Nenhuma badge nova encontrada',
+            'novas_badges': 0
+        })
+    
+    # Avaliar novas badges
+    historico = badges_antigas.copy()
+    for u in usuarios:
+        if u.get('roblox_badges'):
+            historico.extend(u['roblox_badges'])
+    
+    badges_avaliadas, aura_ganho = avaliar_badges_com_gemini(badges_para_avaliar, historico)
+    
+    # Atualizar usuário
+    user['roblox_badges'].extend(badges_avaliadas)
+    user['roblox_badges_total'] = len(badges_novas_raw)
+    user['aura_total'] += aura_ganho
+    user['liga'] = calcular_liga(user['aura_total'])
+    
+    salvar_usuarios(usuarios)
+    
+    # Verificar conquistas
+    novas_conquistas = verificar_conquistas(session['username'])
+    conquistas_desbloqueadas = [CONQUISTAS_DEFINICOES[c] for c in novas_conquistas]
+    
+    return jsonify({
+        'sucesso': True,
+        'novas_badges': len(badges_avaliadas),
+        'aura_ganho': aura_ganho,
+        'aura_total': user['aura_total'],
+        'liga': user['liga'],
+        'conquistas': conquistas_desbloqueadas,
+        'badges': badges_avaliadas
+    })
+
+
+# ========================================
+# ADICIONAR NO requirements.txt
+# ========================================
+"""
+requests==2.31.0
+"""
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-key-change-in-production")
